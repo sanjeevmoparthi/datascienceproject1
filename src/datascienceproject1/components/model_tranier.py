@@ -1,5 +1,6 @@
 from src.datascienceproject1.exception import CustomException
 from src.datascienceproject1.logger import logging
+from urllib.parse import urlparse
 import os
 import sys
 from dataclasses import dataclass
@@ -15,17 +16,18 @@ from sklearn.metrics import r2_score
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
+import mlflow
 
 from src.datascienceproject1.utils import save_object,evaluate_models
 
 
 @dataclass
-class MOdelTrainerConfig:
+class ModelTrainerConfig:
     trained_model_file_path = os.path.join('artifacts','model.pkl')
 
-class MOdelTrainer:
+class ModelTrainer:
     def __init__(self):
-        self.model_trainer_config = MOdelTrainerConfig()
+        self.model_trainer_config = ModelTrainerConfig()
 
     def initiate_model_trainer(self,train_array,test_array):
         try:
@@ -98,54 +100,54 @@ class MOdelTrainer:
                 raise CustomException("NO best model found")
             logging.info(f"Best model on both training and testing dataset")
 
-            # print("This is the best model:")
-            # print(best_model_name)
+            print("This is the best model:")
+            print(best_model_name)
 
-            # model_names = list(params.keys())
+            model_names = list(params.keys())
 
-            # actual_model=""
+            actual_model=""
 
-            # for model in model_names:
-            #     if best_model_name == model:
-            #         actual_model = actual_model + model
+            for model in model_names:
+                if best_model_name == model:
+                    actual_model = actual_model + model
 
-            # best_params = params[actual_model]
+            best_params = params[actual_model]
 
-            # mlflow.set_registry_uri("https://dagshub.com/krishnaik06/mlprojecthindi.mlflow")
-            # tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+            mlflow.set_registry_uri("https://dagshub.com/sanjeevmoparthi/datascienceproject1.mlflow")
+            tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
-            # # mlflow
+            # mlflow
 
-            # with mlflow.start_run():
+            with mlflow.start_run():
 
-            #     predicted_qualities = best_model.predict(X_test)
+                predicted_qualities = best_model.predict(X_test)
 
-            #     (rmse, mae, r2) = self.eval_metrics(y_test, predicted_qualities)
+                (rmse, mae, r2) = self.eval_metrics(y_test, predicted_qualities)
 
-            #     mlflow.log_params(best_params)
+                mlflow.log_params(best_params)
 
-            #     mlflow.log_metric("rmse", rmse)
-            #     mlflow.log_metric("r2", r2)
-            #     mlflow.log_metric("mae", mae)
-
-
-            #     # Model registry does not work with file store
-            #     if tracking_url_type_store != "file":
-
-            #         # Register the model
-            #         # There are other ways to use the Model Registry, which depends on the use case,
-            #         # please refer to the doc for more information:
-            #         # https://mlflow.org/docs/latest/model-registry.html#api-workflow
-            #         mlflow.sklearn.log_model(best_model, "model", registered_model_name=actual_model)
-            #     else:
-            #         mlflow.sklearn.log_model(best_model, "model")
+                mlflow.log_metric("rmse", rmse)
+                mlflow.log_metric("r2", r2)
+                mlflow.log_metric("mae", mae)
 
 
+                # Model registry does not work with file store
+                if tracking_url_type_store != "file":
+
+                    # Register the model
+                    # There are other ways to use the Model Registry, which depends on the use case,
+                    # please refer to the doc for more information:
+                    # https://mlflow.org/docs/latest/model-registry.html#api-workflow
+                    mlflow.sklearn.log_model(best_model, "model", registered_model_name=actual_model)
+                else:
+                    mlflow.sklearn.log_model(best_model, "model")
 
 
-            # if best_model_score<0.6:
-            #     raise CustomException("No best model found")
-            # logging.info(f"Best found model on both training and testing dataset")
+
+
+            if best_model_score<0.6:
+                raise CustomException("No best model found")
+            logging.info(f"Best found model on both training and testing dataset")
 
             save_object(
                 file_path=self.model_trainer_config.trained_model_file_path,

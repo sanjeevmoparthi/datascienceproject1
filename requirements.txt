@@ -7,5 +7,7 @@ mysql-connector-python
 pymysql
 seaborn
 catboost
-xgboost 
+xgboost
+mlflow
+dagshub
 # -e .
